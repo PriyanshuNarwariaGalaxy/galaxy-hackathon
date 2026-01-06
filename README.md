@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+## Requirements
+- **Node.js**: 18+ (recommended 20+)
+- **Postgres** database
+- **Trigger.dev** project (Trigger Cloud or self-hosted)
 
-First, run the development server:
+## Install
+
+```bash
+npm install
+```
+
+## Environment variables
+
+Create a local environment file (example `.env.local`) and set:
+
+- **DATABASE_URL**: Postgres connection string (required for UI + run persistence)
+- **TRIGGER_SECRET_KEY**: Trigger.dev secret key (required to trigger tasks from the app)
+- **TRIGGER_PROJECT_ID**: Trigger.dev project ref (required for `trigger:dev` and task indexing)
+- **TRIGGER_API_URL**: (optional) only if self-hosting Trigger; omit for Trigger Cloud
+
+Optional:
+- **FAL_MOCK_MODE**: set to `1` to auto-complete fal wait tokens for local testing (no external fal calls)
+
+## Database setup (Prisma)
+
+Run migrations and generate Prisma client:
+
+```bash
+npm run db:migrate
+npm run db:generate
+```
+
+## Run the app (Next.js)
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Run the Trigger.dev dev worker (required for executions to leave QUEUED)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+In a second terminal:
 
-## Learn More
+```bash
+TRIGGER_PROJECT_ID=proj_... npm run trigger:dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+If you see “Project not found”, your project ref is wrong or you’re using the wrong Trigger CLI profile.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## How to use
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Dashboard
+- Visit `/` to see workflows
+- Create a new workflow via **New workflow**
 
-## Deploy on Vercel
+### Editor
+- Visit `/workflows/new` or open an existing workflow
+- Drag/drop nodes from the sidebar onto the canvas
+- Connect nodes via handles
+- **Save** (manual) or rely on autosave
+- **Run** starts a `WorkflowRun` and triggers the orchestrator task
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Execution UX
+- The right sidebar shows:
+  - run history (filterable by status)
+  - run inspector (summary + node list + node details)
+  - cancel button for RUNNING/WAITING runs
+- Execution state is a **read-only overlay** and is **not persisted into the workflow graph**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Local execution testing (recommended)
+
+To test runs without external provider calls:
+
+```bash
+FAL_MOCK_MODE=1 npm run dev
+```
+
+And run the Trigger worker:
+
+```bash
+FAL_MOCK_MODE=1 TRIGGER_PROJECT_ID=proj_... npm run trigger:dev
+```
+
+## Useful scripts
+- **typecheck**: `npm run typecheck`
+- **trigger dev worker**: `npm run trigger:dev`
+- **prisma migrate**: `npm run db:migrate`
+- **prisma generate**: `npm run db:generate`
