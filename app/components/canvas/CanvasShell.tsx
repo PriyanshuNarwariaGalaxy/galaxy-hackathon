@@ -1,7 +1,6 @@
 "use client";
 
 import ReactFlow, { Background, BackgroundVariant, Controls, Edge, MiniMap, useEdgesState, useNodesState, Node } from "reactflow";
-import Sidebar from "../sidebar/Sidebar";
 
 export default function CanvasShell() {
 
@@ -16,10 +15,10 @@ export default function CanvasShell() {
             tabIndex={0}
         >
             
-            <Sidebar
+            {/* <Sidebar
                 name={"Testing Hardcoded"}
                 showName={(isVisible) => { }}
-            />
+            /> */}
 
 
             <div className="flex-1 relative h-full">
