@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "./node_modules/.bin/tsc -p tsconfig.json --noEmit",
+    "phase1:build": "./node_modules/.bin/tsc -p tsconfig.phase1.json",
+    "phase1:smoke": "npm run phase1:build && node .phase1-dist/scripts/phase1-smoke.js"
   },
   "dependencies": {
     "lucide-react": "^0.562.0",

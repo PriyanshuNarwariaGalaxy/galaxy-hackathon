@@ -20,6 +20,9 @@
 # production
 /build
 
+# phase-1 test build output
+/.phase1-dist
+
 # misc
 .DS_Store
 *.pem
