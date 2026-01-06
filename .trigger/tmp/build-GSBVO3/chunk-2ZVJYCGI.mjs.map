@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/trigger/providers/fal/types.ts"],
+  "sourcesContent": ["import { z } from \"zod\";\n\n/**\n * fal.ai provider adapter types (Phase 3).\n * This is provider-specific and lives under src/trigger/providers/fal/.\n *\n * The orchestrator must not depend on these details.\n */\n\nexport const falProviderId = \"fal\" as const;\nexport type FalProviderId = typeof falProviderId;\n\n/**\n * Minimal \"submit\" response used by our engine:\n * - `tokenId`: Trigger waitpoint token id to resume later\n * - `tokenUrl`: URL to be used as a webhook callback by the provider\n * - `requestId`: provider-side request identifier (if available)\n */\nexport const falSubmitResultSchema = z.object({\n  tokenId: z.string().min(1),\n  tokenUrl: z.string().url(),\n  requestId: z.string().optional(),\n});\nexport type FalSubmitResult = z.infer<typeof falSubmitResultSchema>;\n\n/**\n * The payload we expect to receive when the waitpoint is completed.\n * This should be shaped to match the node output schema, and validated by the node task.\n */\nexport const falResumePayloadSchema = z.object({\n  text: z.string(),\n});\nexport type FalResumePayload = z.infer<typeof falResumePayloadSchema>;\n\n"],
+  "mappings": ";;;;;;;;AAAA;AASO,IAAM,gBAAgB;AAStB,IAAM,wBAAwB,iBAAE,OAAO;AAAA,EAC5C,SAAS,iBAAE,OAAO,EAAE,IAAI,CAAC;AAAA,EACzB,UAAU,iBAAE,OAAO,EAAE,IAAI;AAAA,EACzB,WAAW,iBAAE,OAAO,EAAE,SAAS;AACjC,CAAC;AAOM,IAAM,yBAAyB,iBAAE,OAAO;AAAA,EAC7C,MAAM,iBAAE,OAAO;AACjB,CAAC;",
+  "names": []
+}

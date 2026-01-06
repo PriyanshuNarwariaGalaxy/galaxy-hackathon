@@ -12,7 +12,64 @@ model Workflow {
   name      String
   nodes     Json
   edges     Json
+  runs      WorkflowRun[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+enum RunStatus {
+  QUEUED
+  RUNNING
+  WAITING
+  COMPLETED
+  FAILED
+  CANCELED
+}
+
+model WorkflowRun {
+  id           String    @id @default(cuid())
+  workflowId   String
+  workflow     Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  status       RunStatus @default(QUEUED)
+  triggerRunId String?   // Trigger.dev run id for orchestrator
+
+  startedAt    DateTime?
+  finishedAt   DateTime?
+
+  // Observability + durability
+  error        String?
+  context      Json?
+
+  nodeRuns     NodeRun[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([workflowId, createdAt])
+}
+
+model NodeRun {
+  id            String    @id @default(cuid())
+  workflowRunId String
+  workflowRun   WorkflowRun @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+
+  nodeId        String
+  nodeType      String
+  status        RunStatus @default(QUEUED)
+
+  provider      String?
+  input         Json?
+  output        Json?
+  logs          Json?     // array of structured log events
+  error         String?
+
+  startedAt     DateTime?
+  finishedAt    DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([workflowRunId, nodeId])
+  @@index([workflowRunId])
+}

@@ -11,6 +11,7 @@ import { Handle, Position } from "reactflow";
 export type BaseNodeData = {
   title: string;
   subtitle?: string;
+  status?: "QUEUED" | "RUNNING" | "COMPLETED" | "FAILED" | "CANCELED";
 };
 
 function BaseNodeInner({
@@ -27,7 +28,10 @@ function BaseNodeInner({
         selected ? "border-[#FAFFC7]" : "border-white/10",
       ].join(" ")}
     >
-      <div className="text-sm font-medium text-white">{data.title}</div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-sm font-medium text-white">{data.title}</div>
+        {data.status && <StatusPill status={data.status} />}
+      </div>
       {data.subtitle && <div className="mt-1 text-xs text-white/60">{data.subtitle}</div>}
 
       <Handle type="target" position={Position.Left} className="!bg-white/60 !border-white/10" />
@@ -38,3 +42,16 @@ function BaseNodeInner({
 
 export const BaseNode = memo(BaseNodeInner);
 
+function StatusPill({ status }: { status: NonNullable<BaseNodeData["status"]> }) {
+  const color =
+    status === "RUNNING"
+      ? "bg-blue-500/15 text-blue-200 border-blue-500/30"
+      : status === "COMPLETED"
+        ? "bg-emerald-500/15 text-emerald-200 border-emerald-500/30"
+        : status === "FAILED"
+          ? "bg-red-500/15 text-red-200 border-red-500/30"
+          : "bg-white/10 text-white/70 border-white/10";
+  return (
+    <span className={`rounded-full border px-2 py-0.5 text-[10px] ${color}`}>{status}</span>
+  );
+}

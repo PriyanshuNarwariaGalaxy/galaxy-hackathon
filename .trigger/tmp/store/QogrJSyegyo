@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../src/trigger/providers/types.ts"],
+  "sourcesContent": ["// Phase 3 (current): we only support a single provider.\n// Keep this as a union so expanding to multiple providers later is easy.\nexport type ProviderId = \"fal\";\n\nexport type ProviderAttemptLog = {\n  provider: ProviderId;\n  attempt: number;\n  startedAt: string;\n  finishedAt?: string;\n  ok: boolean;\n  error?: string;\n};\n\nexport type FallbackOptions = {\n  providers: ProviderId[];\n  retryPerProvider: number; // e.g. 1 = try once, 2 = try twice per provider\n  timeoutMs: number;\n};\n\n"],
+  "mappings": ";;;;;AAAA;",
+  "names": []
+}

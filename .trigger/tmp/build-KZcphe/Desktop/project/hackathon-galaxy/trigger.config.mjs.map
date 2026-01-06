@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../trigger.config.ts"],
+  "sourcesContent": ["import { defineConfig } from \"@trigger.dev/sdk/v3\";\n\n/**\n *\n * This enables the Trigger.dev dev runner to discover and execute tasks in this repo.\n *\n *\n * Notes:\n * - We point Trigger at `src/trigger` which contains all orchestrator + node tasks.\n * - Keep all provider logic inside node tasks (or provider adapters), not in the orchestrator.\n */\n\nexport default defineConfig({\n project: \"proj_jnrnmyrjllfxflkkeove\",\n dirs: [\"src/trigger\"],\n runtime: \"node\",\n\n // Global max duration for task runs (seconds)\n maxDuration: 300,\n\n logLevel: \"info\",\n enableConsoleLogging: true,\n build: {},\n});\n\nexport const resolveEnvVars = undefined;"],
+  "mappings": ";;;;;;;;;AAAA;AAYA,IAAO,yBAAQ,aAAa;AAAA,EAC3B,SAAS;AAAA,EACT,MAAM,CAAC,aAAa;AAAA,EACpB,SAAS;AAAA;AAAA,EAGT,aAAa;AAAA,EAEb,UAAU;AAAA,EACV,sBAAsB;AAAA,EACtB,OAAO,CAAC;AACT,CAAC;AAEM,IAAM,iBAAiB;",
+  "names": []
+}

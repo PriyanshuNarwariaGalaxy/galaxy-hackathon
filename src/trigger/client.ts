@@ -26,8 +26,16 @@ export function configureTriggerClient() {
     );
   }
 
+  const rawBaseURL = process.env.TRIGGER_API_URL?.trim();
+  if (rawBaseURL && /your-trigger-instance\.com/i.test(rawBaseURL)) {
+    throw new Error(
+      'TRIGGER_API_URL is set to a placeholder ("your-trigger-instance.com"). Remove it to use Trigger Cloud, or set it to your real Trigger API base URL.',
+    );
+  }
+
   configure({
-    baseURL: process.env.TRIGGER_API_URL,
+    // If unset, Trigger defaults to https://api.trigger.dev
+    baseURL: rawBaseURL,
     accessToken,
   });
 

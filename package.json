@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "./node_modules/.bin/tsc -p tsconfig.json --noEmit",
+    "trigger:dev": "npx --yes trigger.dev@latest dev",
     "phase1:build": "./node_modules/.bin/tsc -p tsconfig.phase1.json",
     "phase1:smoke": "npm run phase1:build && node .phase1-dist/scripts/phase1-smoke.js",
     "phase2:example": "npm run phase1:build && node .phase1-dist/scripts/phase2-trigger-example.js",

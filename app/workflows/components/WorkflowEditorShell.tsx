@@ -12,7 +12,6 @@ import ReactFlow, {
   useNodesState,
   type Connection,
   type Edge,
-  type Node,
   type ReactFlowInstance,
 } from "reactflow";
 import { z } from "zod";
@@ -58,6 +57,9 @@ export default function WorkflowEditorShell({ workflowId }: { workflowId: string
   const [saving, setSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [id, setId] = useState<string | null>(workflowId);
+  const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  const [activeRunStatus, setActiveRunStatus] = useState<string | null>(null);
+  const [nodeStatusById, setNodeStatusById] = useState<Record<string, string>>({});
 
   // `useNodesState<T>()` is generic over the node `data` shape, NOT the Node type itself.
   // Keeping this correct ensures `setNodes([...])` accepts our `{ title, subtitle }` node data.
@@ -98,8 +100,14 @@ export default function WorkflowEditorShell({ workflowId }: { workflowId: string
   const buildPersistable = useCallback(() => {
     // We persist exactly what React Flow expects: nodes + edges JSON.
     // Validate with UI persistence schema (React Flow shape).
-    workflowPersistenceSchema.parse({ name, nodes, edges });
-    return { name, nodes, edges };
+    const nodesToPersist = nodes.map((n) => {
+      const data = (n.data ?? {}) as any;
+      // Never persist runtime-only fields like execution status.
+      const { status: _status, ...rest } = data;
+      return { ...n, data: rest };
+    });
+    workflowPersistenceSchema.parse({ name, nodes: nodesToPersist, edges });
+    return { name, nodes: nodesToPersist, edges };
   }, [edges, name, nodes]);
 
   const save = useCallback(
@@ -176,19 +184,85 @@ export default function WorkflowEditorShell({ workflowId }: { workflowId: string
       const id = `${parsedType}_${Date.now()}`;
       const title =
         parsedType === "prompt" ? "Prompt" : parsedType === "image" ? "Image" : "Run LLM";
+      const defaultInput =
+        parsedType === "prompt"
+          ? { text: "" }
+          : parsedType === "image"
+            ? { imageBase64: "", mimeType: "image/png" }
+            : {
+                prompt: "",
+                images: [],
+                config: { model: "mock-model", temperature: 0.2, providers: ["fal"] },
+              };
       setNodes((ns) => [
         ...ns,
         {
           id,
           type: parsedType,
           position,
-          data: { title, subtitle: parsedType },
+          data: { title, subtitle: parsedType, input: defaultInput },
         },
       ]);
       scheduleAutosave();
     },
     [scheduleAutosave, setNodes],
   );
+
+  const startRun = useCallback(async () => {
+    if (!id) {
+      setSaveError("Save the workflow first before running.");
+      return;
+    }
+    setSaveError(null);
+    const res = await fetch("/api/workflow/run", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ workflowId: id }),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      setSaveError(json?.error ?? "Failed to start run");
+      return;
+    }
+    setActiveRunId(json.workflowRunId);
+    setActiveRunStatus("QUEUED");
+  }, [id, setSaveError]);
+
+  // Poll execution state and project onto node UI (status pill)
+  useEffect(() => {
+    if (!activeRunId) return;
+    let cancelled = false;
+    const tick = async () => {
+      const res = await fetch(`/api/workflow/run/${activeRunId}`);
+      const json = await res.json();
+      if (cancelled) return;
+      if (!res.ok) return;
+      const run = json.run as any;
+      setActiveRunStatus(run.status);
+      const next: Record<string, string> = {};
+      for (const nr of run.nodeRuns ?? []) next[String(nr.nodeId)] = String(nr.status);
+      setNodeStatusById(next);
+      if (["COMPLETED", "FAILED", "CANCELED"].includes(String(run.status))) {
+        // stop polling once terminal
+        return;
+      }
+      setTimeout(tick, 1000);
+    };
+    void tick();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeRunId, setNodes]);
+
+  const nodesWithStatus = useMemo(() => {
+    return nodes.map((n) => ({
+      ...n,
+      data: {
+        ...(n.data as any),
+        status: nodeStatusById[n.id] ?? (n.data as any)?.status,
+      } as BaseNodeData,
+    }));
+  }, [nodeStatusById, nodes]);
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
@@ -272,11 +346,24 @@ export default function WorkflowEditorShell({ workflowId }: { workflowId: string
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={startRun}
+              className="rounded-lg bg-[#FAFFC7] px-3 py-2 text-sm font-medium text-black hover:opacity-90 disabled:opacity-40"
+              disabled={!id}
+              title={!id ? "Save workflow first" : "Run workflow"}
+            >
+              Run
+            </button>
+            <button
               onClick={() => void save("manual")}
               className="rounded-lg bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/15"
             >
               Save
             </button>
+            {activeRunId && (
+              <div className="ml-2 text-xs text-white/60">
+                Run: <span className="text-white">{activeRunStatus ?? "…"}</span>
+              </div>
+            )}
             <button
               onClick={importJson}
               className="rounded-lg bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/15"
@@ -295,7 +382,7 @@ export default function WorkflowEditorShell({ workflowId }: { workflowId: string
         {/* Canvas */}
         <div className="relative min-w-0 flex-1" onDragOver={onDragOver} onDrop={onDrop}>
           <ReactFlow
-            nodes={nodes}
+            nodes={nodesWithStatus}
             edges={edges}
             nodeTypes={nodeTypes}
             onNodesChange={(changes) => {

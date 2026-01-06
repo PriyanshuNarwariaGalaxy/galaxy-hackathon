@@ -1,0 +1,62 @@
+{
+  "configPath": "/Users/priyanshu.narwaria/Desktop/project/hackathon-galaxy/.trigger/tmp/build-GSBVO3/Desktop/project/hackathon-galaxy/trigger.config.mjs",
+  "customConditions": [
+  ],
+  "queues": [
+  ],
+  "runtime": "node",
+  "runtimeVersion": "24.12.0",
+  "tasks": [
+    {
+      "entryPoint": "/Users/priyanshu.narwaria/Desktop/project/hackathon-galaxy/.trigger/tmp/build-GSBVO3/Desktop/project/hackathon-galaxy/src/trigger/tasks/image.task.mjs",
+      "filePath": "src/trigger/tasks/image.task.ts",
+      "id": "node.image",
+      "maxDuration": 300
+    },
+    {
+      "entryPoint": "/Users/priyanshu.narwaria/Desktop/project/hackathon-galaxy/.trigger/tmp/build-GSBVO3/Desktop/project/hackathon-galaxy/src/trigger/tasks/llm.task.mjs",
+      "filePath": "src/trigger/tasks/llm.task.ts",
+      "id": "node.llm",
+      "maxDuration": 300
+    },
+    {
+      "entryPoint": "/Users/priyanshu.narwaria/Desktop/project/hackathon-galaxy/.trigger/tmp/build-GSBVO3/Desktop/project/hackathon-galaxy/src/trigger/tasks/prompt.task.mjs",
+      "filePath": "src/trigger/tasks/prompt.task.ts",
+      "id": "node.prompt",
+      "maxDuration": 300
+    },
+    {
+      "entryPoint": "/Users/priyanshu.narwaria/Desktop/project/hackathon-galaxy/.trigger/tmp/build-GSBVO3/Desktop/project/hackathon-galaxy/src/trigger/workflow-orchestrator.task.mjs",
+      "filePath": "src/trigger/workflow-orchestrator.task.ts",
+      "id": "workflow.orchestrator.v3",
+      "maxDuration": 300
+    },
+    {
+      "entryPoint": "/Users/priyanshu.narwaria/Desktop/project/hackathon-galaxy/.trigger/tmp/build-GSBVO3/Desktop/project/hackathon-galaxy/src/trigger/node.task.mjs",
+      "filePath": "src/trigger/node.task.ts",
+      "id": "workflow.node",
+      "maxDuration": 300
+    },
+    {
+      "entryPoint": "/Users/priyanshu.narwaria/Desktop/project/hackathon-galaxy/.trigger/tmp/build-GSBVO3/Desktop/project/hackathon-galaxy/src/trigger/orchestrator.task.mjs",
+      "filePath": "src/trigger/orchestrator.task.ts",
+      "id": "workflow.orchestrator",
+      "maxDuration": 300
+    }
+  ],
+  "timings": {
+    "src/trigger/client.ts": 0.20974999999998545,
+    "src/trigger/execution.types.ts": 0.16954200000000696,
+    "src/trigger/node.task.ts": 0.44554100000001995,
+    "src/trigger/orchestrator.task.ts": 0.26445799999999053,
+    "src/trigger/providers/fal/adapter.ts": 0.2591250000000116,
+    "src/trigger/providers/fal/types.ts": 7.240292000000011,
+    "src/trigger/providers/fallback.ts": 0.301124999999999,
+    "src/trigger/providers/types.ts": 0.178875000000005,
+    "src/trigger/tasks/image.task.ts": 10.14970799999999,
+    "src/trigger/tasks/llm.task.ts": 2.9253750000000025,
+    "src/trigger/tasks/prompt.task.ts": 0.5019169999999917,
+    "src/trigger/workflow-orchestrator.task.ts": 0.9194999999999993
+  },
+  "workerEntryPoint": "/Users/priyanshu.narwaria/Desktop/project/hackathon-galaxy/.trigger/tmp/build-GSBVO3/.npm/_npx/f51a09bd0abf5f10/node_modules/trigger.dev/dist/esm/entryPoints/dev-run-worker.mjs"
+}
