@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/**
+ * UI-side persistence only (Phase 1 UI).
+ * No execution tables in this phase.
+ */
+model Workflow {
+  id        String   @id @default(cuid())
+  name      String
+  nodes     Json
+  edges     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
