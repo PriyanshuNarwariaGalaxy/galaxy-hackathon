@@ -93,6 +93,26 @@ var workflowOrchestratorTask = task({
     const order = topologicallySortNodeIds(validatedWorkflow.nodes, validatedWorkflow.edges);
     const context = {};
     for (const nodeId of order) {
+      const current = await prisma.workflowRun.findUnique({
+        where: { id: payload.workflowRunId },
+        select: { status: true }
+      });
+      if (current?.status === "CANCELED") {
+        await prisma.nodeRun.updateMany({
+          where: { workflowRunId: payload.workflowRunId, status: "QUEUED" },
+          data: { status: "CANCELED", finishedAt: now() }
+        });
+        await prisma.workflowRun.update({
+          where: { id: payload.workflowRunId },
+          data: { status: "CANCELED", finishedAt: now(), context }
+        });
+        logger.info("Workflow run canceled", {
+          workflowId: payload.workflowId,
+          workflowRunId: payload.workflowRunId,
+          triggerRunId: ctx.run.id
+        });
+        return { workflowRunId: payload.workflowRunId, status: "CANCELED" };
+      }
       const node = validatedWorkflow.nodes.find((n) => n.id === nodeId);
       const taskId = getTaskIdForType(node.type);
       logger.info("Node start", { workflowRunId: payload.workflowRunId, nodeId, type: node.type });
@@ -112,6 +132,26 @@ var workflowOrchestratorTask = task({
           data: { status: "FAILED", finishedAt: now(), error: `Node failed: ${nodeId}` }
         });
         throw new Error(`Node "${nodeId}" failed`);
+      }
+      const after = await prisma.workflowRun.findUnique({
+        where: { id: payload.workflowRunId },
+        select: { status: true }
+      });
+      if (after?.status === "CANCELED") {
+        await prisma.nodeRun.updateMany({
+          where: { workflowRunId: payload.workflowRunId, status: "QUEUED" },
+          data: { status: "CANCELED", finishedAt: now() }
+        });
+        await prisma.workflowRun.update({
+          where: { id: payload.workflowRunId },
+          data: { status: "CANCELED", finishedAt: now(), context }
+        });
+        logger.info("Workflow run canceled (post-node)", {
+          workflowId: payload.workflowId,
+          workflowRunId: payload.workflowRunId,
+          triggerRunId: ctx.run.id
+        });
+        return { workflowRunId: payload.workflowRunId, status: "CANCELED" };
       }
       context[nodeId] = result.output;
       logger.info("Node complete", { workflowRunId: payload.workflowRunId, nodeId, type: node.type });
