@@ -1,13 +1,6 @@
-"use client";
-
-import WorkflowEditorClient from "./workflow/WorkflowEditorClient";
-
 export default function HomePage() {
-    return (
-        <main className="flex h-screen bg-[#0E0E13] text-white">
-            <div className="flex h-screen w-screen bg-canvas">
-                <WorkflowEditorClient />
-            </div>
-        </main>
-    );
+  // Dashboard listing (Phase-1 UI)
+  // Editor lives under /workflows/[id] and /workflows/new
+  const WorkflowListClient = require("./components/workflows/WorkflowListClient").default;
+  return <WorkflowListClient />;
 }

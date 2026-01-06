@@ -1,16 +1,24 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 import { prisma } from "@/app/lib/prisma";
-import { workflowSchema } from "@/src/core/workflow/workflow.schema";
+import { workflowPersistenceSchema } from "@/app/lib/workflow.persistence.schema";
 
-const createWorkflowSchema = z.object({
-  name: z.string().min(1).max(120),
-  nodes: z.array(z.any()),
-  edges: z.array(z.any()),
-});
+function ensureDatabaseConfigured() {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json(
+      {
+        error: "DATABASE_URL is not set. Configure Postgres and set DATABASE_URL in your environment.",
+      },
+      { status: 500 },
+    );
+  }
+  return null;
+}
 
 export async function GET() {
+  const dbErr = ensureDatabaseConfigured();
+  if (dbErr) return dbErr;
+
   const workflows = await prisma.workflow.findMany({
     orderBy: { updatedAt: "desc" },
     select: { id: true, name: true, updatedAt: true, createdAt: true },
@@ -19,17 +27,19 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const json = await req.json();
-  const parsed = createWorkflowSchema.parse(json);
+  const dbErr = ensureDatabaseConfigured();
+  if (dbErr) return dbErr;
 
-  // Validate structure using Phase 1 workflow schema.
-  workflowSchema.parse({ nodes: parsed.nodes, edges: parsed.edges });
+  const json = await req.json();
+  const parsed = workflowPersistenceSchema.parse(json);
 
   const created = await prisma.workflow.create({
     data: {
       name: parsed.name,
-      nodes: parsed.nodes,
-      edges: parsed.edges,
+      // Prisma JSON typing differs across generated-client versions.
+      // We validate shape via Zod above; then persist as JSON.
+      nodes: parsed.nodes as any,
+      edges: parsed.edges as any,
     },
     select: { id: true, name: true, updatedAt: true, createdAt: true, nodes: true, edges: true },
   });

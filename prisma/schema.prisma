@@ -7,10 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/**
- * UI-side persistence only (Phase 1 UI).
- * No execution tables in this phase.
- */
 model Workflow {
   id        String   @id @default(cuid())
   name      String

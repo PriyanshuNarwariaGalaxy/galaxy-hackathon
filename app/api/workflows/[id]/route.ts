@@ -2,7 +2,19 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/app/lib/prisma";
-import { workflowSchema } from "@/src/core/workflow/workflow.schema";
+import { workflowPersistenceSchema } from "@/app/lib/workflow.persistence.schema";
+
+function ensureDatabaseConfigured() {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json(
+      {
+        error: "DATABASE_URL is not set. Configure Postgres and set DATABASE_URL in your environment.",
+      },
+      { status: 500 },
+    );
+  }
+  return null;
+}
 
 const updateWorkflowSchema = z.object({
   name: z.string().min(1).max(120).optional(),
@@ -14,6 +26,9 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const dbErr = ensureDatabaseConfigured();
+  if (dbErr) return dbErr;
+
   const { id } = await params;
 
   const workflow = await prisma.workflow.findUnique({
@@ -32,6 +47,9 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const dbErr = ensureDatabaseConfigured();
+  if (dbErr) return dbErr;
+
   const { id } = await params;
   const json = await req.json();
   const parsed = updateWorkflowSchema.parse(json);
@@ -47,15 +65,21 @@ export async function PATCH(
   const nodes = (parsed.nodes ?? existing.nodes) as unknown;
   const edges = (parsed.edges ?? existing.edges) as unknown;
 
-  // Validate structure using Phase 1 workflow schema.
-  workflowSchema.parse({ nodes, edges });
+  // Validate React Flow persistence shape (UI schema).
+  workflowPersistenceSchema.parse({
+    name: parsed.name ?? existing.name,
+    nodes,
+    edges,
+  });
 
   const updated = await prisma.workflow.update({
     where: { id },
     data: {
       name: parsed.name,
-      nodes,
-      edges,
+      // Prisma JSON typing differs across generated-client versions.
+      // These values are validated structurally above and then persisted.
+      nodes: nodes as any,
+      edges: edges as any,
     },
     select: { id: true, name: true, nodes: true, edges: true, updatedAt: true, createdAt: true },
   });
@@ -67,6 +91,9 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const dbErr = ensureDatabaseConfigured();
+  if (dbErr) return dbErr;
+
   const { id } = await params;
   await prisma.workflow.delete({ where: { id } });
   return NextResponse.json({ ok: true });
